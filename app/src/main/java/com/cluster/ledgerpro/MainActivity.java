@@ -46,12 +46,17 @@ public class MainActivity extends AppCompatActivity {
     // UI Components for Lists and Empty States
     private RecyclerView rvLinkedCards;
     private RecyclerView rvRecentTransactions;
+    private RecyclerView rvAccountsCreditCards;
+    private RecyclerView rvAccountsContacts;
     private TextView tvEmptyCards;
     private TextView tvEmptyTransactions;
+    private TextView tvEmptyCreditCards;
+    private TextView tvEmptyContacts;
 
     // Custom Adapters for RecyclerViews
     private CardAdapter cardAdapter;
     private TransactionAdapter transactionAdapter;
+    private ContactAdapter contactAdapter;
 
     // Firebase instances
     private FirebaseFirestore db;
@@ -137,32 +142,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Initializes the RecyclerViews for Cards and Transactions, sets their scroll direction,
-     * and links the custom adapters.
+     * Initializes the RecyclerViews for Cards, Transactions, Credit Cards, and Contacts,
+     * sets their scroll direction, and links the custom adapters.
      */
     private void setupRecyclerViews() {
         tvEmptyCards = findViewById(R.id.tv_empty_cards);
         tvEmptyTransactions = findViewById(R.id.tv_empty_transactions);
+        tvEmptyCreditCards = findViewById(R.id.tv_empty_credit_cards);
+        tvEmptyContacts = findViewById(R.id.tv_empty_contacts);
 
-        // Cards List: Horizontal scrolling configuration
+        // Cards List: Horizontal scrolling configuration (Home screen)
         rvLinkedCards = findViewById(R.id.rv_linked_cards);
         rvLinkedCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         cardAdapter = new CardAdapter();
         rvLinkedCards.setAdapter(cardAdapter);
 
-        // Transactions List: Vertical scrolling configuration
+        // Transactions List: Vertical scrolling configuration (Home screen)
         rvRecentTransactions = findViewById(R.id.rv_recent_transactions);
         rvRecentTransactions.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         transactionAdapter = new TransactionAdapter();
         rvRecentTransactions.setAdapter(transactionAdapter);
+
+        // Accounts Tab - Credit Cards List: Vertical scrolling configuration
+        rvAccountsCreditCards = findViewById(R.id.rv_accounts_credit_cards);
+        rvAccountsCreditCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        rvAccountsCreditCards.setAdapter(cardAdapter); // Reusing cardAdapter for credit cards tab
+
+        // Accounts Tab - Contacts List: Vertical scrolling configuration
+        rvAccountsContacts = findViewById(R.id.rv_accounts_contacts);
+        rvAccountsContacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        contactAdapter = new ContactAdapter();
+        rvAccountsContacts.setAdapter(contactAdapter);
     }
 
     /**
      * Attaches real-time SnapshotListeners to Firestore collections. This ensures the
-     * dashboard updates instantly if data changes in the cloud, without needing a refresh.
+     * dashboard and accounts tabs update instantly if data changes in the cloud, without needing a refresh.
      */
     private void loadFirestoreData() {
-        // Listen for linked Accounts/Cards
+        // Listen for linked Accounts/Credit Cards
         db.collection("users").document(userEmail).collection("accounts")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
@@ -173,10 +191,34 @@ public class MainActivity extends AppCompatActivity {
                         rvLinkedCards.setVisibility(View.VISIBLE);
                         tvEmptyCards.setVisibility(View.GONE);
                         cardAdapter.setCards(snapshots.getDocuments());
+
+                        rvAccountsCreditCards.setVisibility(View.VISIBLE);
+                        tvEmptyCreditCards.setVisibility(View.GONE);
                     } else {
                         rvLinkedCards.setVisibility(View.GONE);
                         tvEmptyCards.setVisibility(View.VISIBLE);
                         cardAdapter.setCards(new ArrayList<>());
+
+                        rvAccountsCreditCards.setVisibility(View.GONE);
+                        tvEmptyCreditCards.setVisibility(View.VISIBLE);
+                    }
+                });
+
+        // Listen for Contacts under the user document
+        db.collection("users").document(userEmail).collection("contacts")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Listen failed for contacts.", e);
+                        return;
+                    }
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        rvAccountsContacts.setVisibility(View.VISIBLE);
+                        tvEmptyContacts.setVisibility(View.GONE);
+                        contactAdapter.setContacts(snapshots.getDocuments());
+                    } else {
+                        rvAccountsContacts.setVisibility(View.GONE);
+                        tvEmptyContacts.setVisibility(View.VISIBLE);
+                        contactAdapter.setContacts(new ArrayList<>());
                     }
                 });
 
@@ -258,14 +300,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Sets up the TabLayout for "Credit Cards" and "Contacts" with a bottom indicator style.
+     * Sets up the TabLayout for "Credit Cards" and "Contacts" and handles switching visibility.
      */
     private void setupAccountsTabSwitching() {
         com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout_accounts);
         View sectionCreditCards = findViewById(R.id.section_credit_cards);
         View sectionContacts = findViewById(R.id.section_contacts);
 
-        // Clear and add tabs if not already added
         tabLayout.removeAllTabs();
         tabLayout.addTab(tabLayout.newTab().setText("Credit Cards"));
         tabLayout.addTab(tabLayout.newTab().setText("Contacts"));
@@ -283,16 +324,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {
-                // No-op
-            }
+            public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
 
             @Override
-            public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {
-                // No-op
-            }
+            public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
         });
     }
+
+    /**
+     * Configures click listeners for all interactive card elements across Home, Accounts, Utilities, and Settings.
+     */
     private void setupClickListeners() {
         // --- Home Screen Action Clicks ---
         findViewById(R.id.card_all_cards).setOnClickListener(v -> Toast.makeText(this, "Loading Linked Cards...", Toast.LENGTH_SHORT).show());
@@ -383,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
     // =========================================================================
 
     /**
-     * Adapter for processing and displaying user accounts inside the horizontal RecyclerView.
+     * Adapter for processing and displaying user accounts inside the horizontal/vertical RecyclerView.
      */
     private static class CardAdapter extends RecyclerView.Adapter<CardAdapter.CardViewHolder> {
         private List<DocumentSnapshot> cardList = new ArrayList<>();
@@ -520,6 +561,56 @@ public class MainActivity extends AppCompatActivity {
         static class TransactionViewHolder extends RecyclerView.ViewHolder {
             TextView tvTitle, tvDate, tvAmount; ImageView imgIcon;
             public TransactionViewHolder(@NonNull View itemView) {
+                super(itemView);
+                tvTitle = itemView.findViewById(R.id.tv_transaction_title);
+                tvDate = itemView.findViewById(R.id.tv_transaction_date);
+                tvAmount = itemView.findViewById(R.id.tv_transaction_amount);
+                imgIcon = itemView.findViewById(R.id.img_transaction_icon);
+            }
+        }
+    }
+
+    /**
+     * Adapter for processing and displaying contacts inside the Contacts tab of the Accounts section.
+     */
+    private static class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
+        private List<DocumentSnapshot> contactList = new ArrayList<>();
+
+        @SuppressLint("NotifyDataSetChanged")
+        public void setContacts(List<DocumentSnapshot> contacts) {
+            this.contactList = contacts;
+            notifyDataSetChanged();
+        }
+
+        @NonNull
+        @Override
+        public ContactViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new ContactViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_transaction, parent, false));
+        }
+
+        @SuppressLint("SetTextI18n")
+        @Override
+        public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
+            DocumentSnapshot doc = contactList.get(position);
+            String name = doc.getString("name");
+            String phone = doc.getString("phone");
+
+            holder.tvTitle.setText(name != null ? name : "Unknown Contact");
+            holder.tvDate.setText(phone != null ? phone : "");
+            holder.tvAmount.setText("");
+            holder.imgIcon.setImageResource(android.R.drawable.ic_menu_my_calendar);
+        }
+
+        @Override
+        public int getItemCount() {
+            return contactList.size();
+        }
+
+        static class ContactViewHolder extends RecyclerView.ViewHolder {
+            TextView tvTitle, tvDate, tvAmount;
+            ImageView imgIcon;
+
+            public ContactViewHolder(@NonNull View itemView) {
                 super(itemView);
                 tvTitle = itemView.findViewById(R.id.tv_transaction_title);
                 tvDate = itemView.findViewById(R.id.tv_transaction_date);

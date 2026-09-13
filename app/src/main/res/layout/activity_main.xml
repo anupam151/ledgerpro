@@ -341,7 +341,7 @@
             android:visibility="gone"
             android:background="#F9F9F9">
 
-            <!-- MaterialTabLayout for Credit Cards & Contacts -->
+            <!-- MaterialTabLayout with Credit Cards & Contacts tabs -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tab_layout_accounts"
                 android:layout_width="match_parent"
@@ -354,18 +354,18 @@
                 app:tabGravity="fill" />
 
             <!-- Section 1: Credit Cards -->
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/section_credit_cards"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="16dp"
                 android:visibility="visible">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_accounts_credit_cards"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:padding="16dp"
                     tools:listitem="@layout/item_linked_card" />
 
                 <TextView
@@ -373,25 +373,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="No credit cards added."
+                    android:text="No Credit Card added yet."
+                    android:textStyle="italic"
                     android:textColor="#9E9E9E"
                     android:textSize="14sp"
                     android:visibility="gone" />
-            </LinearLayout>
+            </FrameLayout>
 
             <!-- Section 2: Contacts -->
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/section_contacts"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="16dp"
                 android:visibility="gone">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_accounts_contacts"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:padding="16dp"
                     tools:listitem="@layout/item_recent_transaction" />
 
                 <TextView
@@ -399,11 +400,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="No contacts added."
+                    android:text="No Contact added yet."
+                    android:textStyle="italic"
                     android:textColor="#9E9E9E"
                     android:textSize="14sp"
                     android:visibility="gone" />
-            </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
 
         <!-- ==================== UTILITIES PAGE LAYOUT ==================== -->
