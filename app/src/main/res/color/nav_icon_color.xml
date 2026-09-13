@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- White icon when selected to contrast against the dark pill -->
+    <item android:color="#FFFFFF" android:state_checked="true" />
+    <!-- Grey icon when unselected -->
+    <item android:color="#1E293B" />
+</selector>

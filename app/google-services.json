@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1076712867687",
+    "project_id": "ledgerpro-cluster",
+    "storage_bucket": "ledgerpro-cluster.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076712867687:android:89176651f84e686f5bd1c2",
+        "android_client_info": {
+          "package_name": "com.cluster.ledgerpro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1076712867687-kpt2dledk0af2bqc2fo6qciuk5g6cpah.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cluster.ledgerpro",
+            "certificate_hash": "cd6c9ba1ef29c38fdd78436cd16dd3ee1cc31ab2"
+          }
+        },
+        {
+          "client_id": "1076712867687-0edl1l51gjkt8dudltc95ln54b88sou5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARLU1eeGY1091GMNtAIXkOUjJ5l6yiHX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1076712867687-0edl1l51gjkt8dudltc95ln54b88sou5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
