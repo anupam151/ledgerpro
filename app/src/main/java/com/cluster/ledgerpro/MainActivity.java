@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -36,12 +37,94 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+
+    // =========================================================================
+    // STATIC MAPPINGS (FULL BANK SHORT NAME LIST)
+    // =========================================================================
+    private static final Map<String, String> BANK_INITIALS_MAP = new HashMap<>();
+
+    static {
+        BANK_INITIALS_MAP.put("Bank of Baroda", "BOB");
+        BANK_INITIALS_MAP.put("Bank of India", "BOI");
+        BANK_INITIALS_MAP.put("Bank of Maharashtra", "BOM");
+        BANK_INITIALS_MAP.put("Canara Bank", "CAN");
+        BANK_INITIALS_MAP.put("Central Bank of India", "CBI");
+        BANK_INITIALS_MAP.put("Indian Bank", "IB");
+        BANK_INITIALS_MAP.put("Indian Overseas Bank", "IOB");
+        BANK_INITIALS_MAP.put("Punjab National Bank", "PNB");
+        BANK_INITIALS_MAP.put("Punjab & Sind Bank", "PSB");
+        BANK_INITIALS_MAP.put("State Bank of India", "SBI");
+        BANK_INITIALS_MAP.put("UCO Bank", "UCO");
+        BANK_INITIALS_MAP.put("Union Bank of India", "UBI");
+        BANK_INITIALS_MAP.put("Axis Bank", "AXIS");
+        BANK_INITIALS_MAP.put("Bandhan Bank", "BANDHAN");
+        BANK_INITIALS_MAP.put("CSB Bank", "CSB");
+        BANK_INITIALS_MAP.put("City Union Bank", "CUB");
+        BANK_INITIALS_MAP.put("DCB Bank", "DCB");
+        BANK_INITIALS_MAP.put("Dhanlaxmi Bank", "DLB");
+        BANK_INITIALS_MAP.put("Federal Bank", "FED");
+        BANK_INITIALS_MAP.put("HDFC Bank", "HDFC");
+        BANK_INITIALS_MAP.put("ICICI Bank Limited", "ICICI");
+        BANK_INITIALS_MAP.put("ICICI Bank", "ICICI");
+        BANK_INITIALS_MAP.put("IDBI Bank", "IDBI");
+        BANK_INITIALS_MAP.put("IDFC FIRST Bank", "IDFC");
+        BANK_INITIALS_MAP.put("IndusInd Bank", "IND");
+        BANK_INITIALS_MAP.put("Jammu & Kashmir Bank", "J&K");
+        BANK_INITIALS_MAP.put("Karnataka Bank", "KBL");
+        BANK_INITIALS_MAP.put("Karur Vysya Bank", "KVB");
+        BANK_INITIALS_MAP.put("Kotak Mahindra Bank", "KOTAK");
+        BANK_INITIALS_MAP.put("Nainital Bank", "NB");
+        BANK_INITIALS_MAP.put("RBL Bank", "RBL");
+        BANK_INITIALS_MAP.put("South Indian Bank", "SIB");
+        BANK_INITIALS_MAP.put("Tamilnad Mercantile Bank", "TMB");
+        BANK_INITIALS_MAP.put("YES Bank", "YES");
+        BANK_INITIALS_MAP.put("AU Small Finance Bank", "AUSFB");
+        BANK_INITIALS_MAP.put("Capital Small Finance Bank", "CSFB");
+        BANK_INITIALS_MAP.put("Equitas Small Finance Bank", "ESFB");
+        BANK_INITIALS_MAP.put("ESAF Small Finance Bank", "ESFB");
+        BANK_INITIALS_MAP.put("Fincare Small Finance Bank", "FSFB");
+        BANK_INITIALS_MAP.put("Jana Small Finance Bank", "JSFB");
+        BANK_INITIALS_MAP.put("North East Small Finance Bank", "NESFB");
+        BANK_INITIALS_MAP.put("Shivalik Small Finance Bank", "SSFB");
+        BANK_INITIALS_MAP.put("Suryoday Small Finance Bank", "SSFB");
+        BANK_INITIALS_MAP.put("Ujjivan Small Finance Bank", "USFB");
+        BANK_INITIALS_MAP.put("Unity Small Finance Bank", "USFB");
+        BANK_INITIALS_MAP.put("Utkarsh Small Finance Bank", "USFB");
+        BANK_INITIALS_MAP.put("Airtel Payments Bank", "APBL");
+        BANK_INITIALS_MAP.put("Fino Payments Bank", "FPB");
+        BANK_INITIALS_MAP.put("India Post Payments Bank", "IPPB");
+        BANK_INITIALS_MAP.put("Jio Payments Bank", "JPB");
+        BANK_INITIALS_MAP.put("NSDL Payments Bank", "NPB");
+        BANK_INITIALS_MAP.put("Paytm Payments Bank", "PPBL");
+        BANK_INITIALS_MAP.put("Baroda Gujarat Gramin Bank", "BGGB");
+        BANK_INITIALS_MAP.put("Baroda Rajasthan Kshetriya Gramin Bank", "BRKGB");
+        BANK_INITIALS_MAP.put("Baroda U.P. Bank", "BUPB");
+        BANK_INITIALS_MAP.put("Kerala Gramin Bank", "KGB");
+        BANK_INITIALS_MAP.put("Cosmos Co-operative Bank", "CCB");
+        BANK_INITIALS_MAP.put("Saraswat Co-operative Bank", "SCB");
+        BANK_INITIALS_MAP.put("SVC Co-operative Bank", "SVC");
+        BANK_INITIALS_MAP.put("American Express", "AMEX");
+        BANK_INITIALS_MAP.put("Bank of America", "BOA");
+        BANK_INITIALS_MAP.put("Barclays Bank", "BARB");
+        BANK_INITIALS_MAP.put("BNP Paribas", "BNP");
+        BANK_INITIALS_MAP.put("Citibank", "CITI");
+        BANK_INITIALS_MAP.put("DBS Bank", "DBS");
+        BANK_INITIALS_MAP.put("Deutsche Bank", "DB");
+        BANK_INITIALS_MAP.put("First Abu Dhabi Bank", "FAB");
+        BANK_INITIALS_MAP.put("HSBC Bank", "HSBC");
+        BANK_INITIALS_MAP.put("Qatar National Bank", "QNB");
+        BANK_INITIALS_MAP.put("SBM Bank India", "SBM");
+        BANK_INITIALS_MAP.put("Standard Chartered Bank", "SCB");
+        BANK_INITIALS_MAP.put("Standard Chartered", "SCB");
+    }
 
     // UI Components for Lists and Empty States
     private RecyclerView rvLinkedCards;
@@ -55,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Custom Adapters for RecyclerViews
     private CardAdapter cardAdapter;
+    private AccountsCardAdapter accountsCardAdapter;
     private TransactionAdapter transactionAdapter;
     private ContactAdapter contactAdapter;
 
@@ -73,7 +157,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Enable modern edge-to-edge UI
         EdgeToEdge.enable(this);
-        // Using activity_main directly as the SPA container layout
         setContentView(R.layout.activity_main);
 
         // Apply Window Insets to prevent UI from hiding behind system bars (status bar/nav bar)
@@ -93,16 +176,13 @@ public class MainActivity extends AppCompatActivity {
 
         String displayName = "User";
 
-        // Extract Google Account details if user is successfully authenticated
         if (currentUser != null) {
             userEmail = currentUser.getEmail();
 
-            // Extract the first name from the Google Account
             if (currentUser.getDisplayName() != null && !currentUser.getDisplayName().isEmpty()) {
                 displayName = currentUser.getDisplayName().split(" ")[0];
             }
 
-            // Fetch and upgrade Google Profile Picture to High Resolution (400px)
             if (currentUser.getPhotoUrl() != null) {
                 String photoUrl = currentUser.getPhotoUrl().toString();
                 photoUrl = photoUrl.replace("s96-c", "s400-c");
@@ -114,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Calculate time of day for a dynamic, personalized greeting
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         int hour = calendar.get(java.util.Calendar.HOUR_OF_DAY);
         String timeGreeting = "Good Evening";
@@ -125,25 +204,21 @@ public class MainActivity extends AppCompatActivity {
         }
         tvGreeting.setText(timeGreeting + ", " + displayName + "!");
 
-        // Set current live device date formatted for India locale
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault());
         tvDate.setText(sdf.format(new Date()));
 
-        // Setup layouts, listeners, and navigation
         setupRecyclerViews();
         setupClickListeners();
         setupBottomNavigation();
         setupAccountsTabSwitching();
 
-        // Load dynamic data from Firestore only if userEmail is valid
         if (userEmail != null && !userEmail.isEmpty()) {
             loadFirestoreData();
         }
     }
 
     /**
-     * Initializes the RecyclerViews for Cards, Transactions, Credit Cards, and Contacts,
-     * sets their scroll direction, and links the custom adapters.
+     * Initializes the RecyclerViews for Cards, Transactions, Credit Cards, and Contacts.
      */
     private void setupRecyclerViews() {
         tvEmptyCards = findViewById(R.id.tv_empty_cards);
@@ -151,24 +226,25 @@ public class MainActivity extends AppCompatActivity {
         tvEmptyCreditCards = findViewById(R.id.tv_empty_credit_cards);
         tvEmptyContacts = findViewById(R.id.tv_empty_contacts);
 
-        // Cards List: Horizontal scrolling configuration (Home screen)
+        // Horizontal scrolling configuration (Home screen)
         rvLinkedCards = findViewById(R.id.rv_linked_cards);
         rvLinkedCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         cardAdapter = new CardAdapter();
         rvLinkedCards.setAdapter(cardAdapter);
 
-        // Transactions List: Vertical scrolling configuration (Home screen)
+        // Vertical scrolling configuration (Home screen transactions)
         rvRecentTransactions = findViewById(R.id.rv_recent_transactions);
         rvRecentTransactions.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         transactionAdapter = new TransactionAdapter();
         rvRecentTransactions.setAdapter(transactionAdapter);
 
-        // Accounts Tab - Credit Cards List: Vertical scrolling configuration
+        // Accounts Tab - Vertical Credit Cards List (New Adapter)
         rvAccountsCreditCards = findViewById(R.id.rv_accounts_credit_cards);
         rvAccountsCreditCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        rvAccountsCreditCards.setAdapter(cardAdapter); // Reusing cardAdapter for credit cards tab
+        accountsCardAdapter = new AccountsCardAdapter();
+        rvAccountsCreditCards.setAdapter(accountsCardAdapter);
 
-        // Accounts Tab - Contacts List: Vertical scrolling configuration
+        // Accounts Tab - Vertical Contacts List
         rvAccountsContacts = findViewById(R.id.rv_accounts_contacts);
         rvAccountsContacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         contactAdapter = new ContactAdapter();
@@ -176,15 +252,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Attaches real-time SnapshotListeners to Firestore collections. This ensures the
-     * dashboard and accounts tabs update instantly if data changes in the cloud, without needing a refresh.
+     * Attaches real-time SnapshotListeners to Firestore collections.
      */
     private void loadFirestoreData() {
-        // Listen for linked Accounts/Credit Cards
-        db.collection("users").document(userEmail).collection("accounts")
+        db.collection("users").document(userEmail).collection("Credit Cards")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
-                        Log.e(TAG, "Listen failed for accounts.", e);
+                        Log.e(TAG, "Listen failed for Credit Cards.", e);
                         return;
                     }
                     if (snapshots != null && !snapshots.isEmpty()) {
@@ -194,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
 
                         rvAccountsCreditCards.setVisibility(View.VISIBLE);
                         tvEmptyCreditCards.setVisibility(View.GONE);
+                        accountsCardAdapter.setCards(snapshots.getDocuments());
                     } else {
                         rvLinkedCards.setVisibility(View.GONE);
                         tvEmptyCards.setVisibility(View.VISIBLE);
@@ -201,16 +276,13 @@ public class MainActivity extends AppCompatActivity {
 
                         rvAccountsCreditCards.setVisibility(View.GONE);
                         tvEmptyCreditCards.setVisibility(View.VISIBLE);
+                        accountsCardAdapter.setCards(new ArrayList<>());
                     }
                 });
 
-        // Listen for Contacts under the user document
         db.collection("users").document(userEmail).collection("contacts")
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.e(TAG, "Listen failed for contacts.", e);
-                        return;
-                    }
+                    if (e != null) return;
                     if (snapshots != null && !snapshots.isEmpty()) {
                         rvAccountsContacts.setVisibility(View.VISIBLE);
                         tvEmptyContacts.setVisibility(View.GONE);
@@ -222,14 +294,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        // Listen for Transactions, ordered chronologically descending
         db.collection("users").document(userEmail).collection("transactions")
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.e(TAG, "Listen failed for transactions.", e);
-                        return;
-                    }
+                    if (e != null) return;
                     if (snapshots != null && !snapshots.isEmpty()) {
                         rvRecentTransactions.setVisibility(View.VISIBLE);
                         tvEmptyTransactions.setVisibility(View.GONE);
@@ -243,26 +311,104 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Triggers a custom rounded-corner dialog displaying "Edit" and "Delete" options for a selected card.
+     */
+    private void showCardOptionsDialog(DocumentSnapshot doc) {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(R.layout.dialog_card_options);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        TextView tvTitle = dialog.findViewById(R.id.tv_dialog_title);
+        TextView tvEdit = dialog.findViewById(R.id.tv_edit_card);
+        TextView tvDelete = dialog.findViewById(R.id.tv_delete_card);
+
+        tvTitle.setText(doc.getString("card_name"));
+
+        tvEdit.setOnClickListener(v -> {
+            dialog.dismiss();
+            launchEditCardActivity(doc);
+        });
+
+        tvDelete.setOnClickListener(v -> {
+            dialog.dismiss();
+            confirmDeleteCard(doc);
+        });
+
+        dialog.show();
+    }
+
+    /**
+     * Packages the Firestore document data into an Intent and launches AddCardActivity in edit mode.
+     */
+    private void launchEditCardActivity(DocumentSnapshot doc) {
+        Intent intent = new Intent(this, AddCardActivity.class);
+        intent.putExtra("CARD_ID", doc.getId());
+        intent.putExtra("BANK_NAME", doc.getString("bank_name"));
+        intent.putExtra("CARD_NAME", doc.getString("card_name"));
+        intent.putExtra("CARD_TYPE", doc.getString("network"));
+        intent.putExtra("LAST4", doc.getString("account_id"));
+        intent.putExtra("TOTAL_LIMIT", doc.getDouble("credit_limit"));
+
+        Long billingDay = doc.getLong("billing_day");
+        intent.putExtra("BILLING_DAY", billingDay != null ? billingDay.intValue() : 1);
+
+        Boolean isCb = doc.getBoolean("cashback_enabled");
+        intent.putExtra("IS_CASHBACK", isCb != null ? isCb : false);
+
+        Object ratesObj = doc.get("cashback_rates");
+        if (ratesObj instanceof List) {
+            List<?> ratesList = (List<?>) ratesObj;
+            double[] ratesArr = new double[ratesList.size()];
+            for (int i = 0; i < ratesList.size(); i++) {
+                ratesArr[i] = ((Number) ratesList.get(i)).doubleValue();
+            }
+            intent.putExtra("CASHBACK_RATES", ratesArr);
+        }
+
+        Long themeColor = doc.getLong("theme_color");
+        if (themeColor != null) {
+            intent.putExtra("THEME_COLOR", String.valueOf(themeColor));
+        }
+
+        startActivity(intent);
+    }
+
+    /**
+     * Shows a confirmation dialog before permanently removing the card document from Firestore.
+     */
+    private void confirmDeleteCard(DocumentSnapshot doc) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Credit Card")
+                .setMessage("Are you sure you want to delete this credit card? This action cannot be undone.")
+                .setPositiveButton("Delete", (dialog, which) -> db.collection("users").document(userEmail).collection("Credit Cards")
+                        .document(doc.getId())
+                        .delete()
+                        .addOnSuccessListener(aVoid -> Toast.makeText(this, "Credit Card deleted", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show()))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /**
      * SPA Architecture: Manages navigation entirely within this activity.
-     * Toggling layout visibility ensures the bottom navigation bar never unloads,
-     * maintaining a smooth, uninterrupted single-page experience.
      */
     @SuppressLint("SetTextI18n")
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-
         TextView tvAppTitle = findViewById(R.id.tv_app_title);
         View layoutHome = findViewById(R.id.layout_home);
         View layoutAccounts = findViewById(R.id.layout_accounts);
         View layoutUtilities = findViewById(R.id.layout_utilities);
         View layoutSettings = findViewById(R.id.layout_settings);
 
-        // Highlight Home upon initial launch
         bottomNav.setSelectedItemId(R.id.nav_home);
 
         bottomNav.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-
             if (itemId == R.id.nav_home) {
                 tvAppTitle.setText("LedgerPro");
                 layoutHome.setVisibility(View.VISIBLE);
@@ -299,9 +445,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Sets up the TabLayout for "Credit Cards" and "Contacts" and handles switching visibility.
-     */
     private void setupAccountsTabSwitching() {
         com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout_accounts);
         View sectionCreditCards = findViewById(R.id.section_credit_cards);
@@ -322,71 +465,46 @@ public class MainActivity extends AppCompatActivity {
                     sectionContacts.setVisibility(View.VISIBLE);
                 }
             }
-
-            @Override
-            public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
-
-            @Override
-            public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
+            @Override public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
+            @Override public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
         });
     }
 
-    /**
-     * Configures click listeners for all interactive card elements across Home, Accounts, Utilities, and Settings.
-     */
     private void setupClickListeners() {
-        // --- Home Screen Action Clicks ---
         findViewById(R.id.card_all_cards).setOnClickListener(v -> Toast.makeText(this, "Loading Linked Cards...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_all_contacts).setOnClickListener(v -> Toast.makeText(this, "Loading Payees...", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.card_add_card).setOnClickListener(v -> Toast.makeText(this, "Opening Add Card Form", Toast.LENGTH_SHORT).show());
+
+        findViewById(R.id.card_add_card).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddCardActivity.class);
+            startActivity(intent);
+        });
+
         findViewById(R.id.card_add_contact).setOnClickListener(v -> Toast.makeText(this, "Opening Add Contact Form", Toast.LENGTH_SHORT).show());
-
-        // --- Utility Screen Action Clicks ---
         findViewById(R.id.card_utility_emi_calculator).setOnClickListener(v -> Toast.makeText(this, "Opening EMI Calculator...", Toast.LENGTH_SHORT).show());
-
-        // --- Settings Screen Action Clicks ---
         findViewById(R.id.card_setting_account).setOnClickListener(v -> Toast.makeText(this, "Opening Account Settings...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_setting_profile).setOnClickListener(v -> Toast.makeText(this, "Opening Profile Settings...", Toast.LENGTH_SHORT).show());
-
-        // Trigger complete logout procedure including Google Account picker reset and local cache clearing
         findViewById(R.id.card_setting_logout).setOnClickListener(v -> logoutAndClearSession());
     }
 
-    /**
-     * Signs the user out of Firebase Auth, clears Google Sign-In state to force the
-     * account picker on the next login, wipes local cache & Firestore persistence,
-     * and redirects to LoginActivity.
-     */
     @SuppressWarnings("deprecation")
     private void logoutAndClearSession() {
-        // 1. Sign out from Firebase Authentication
         FirebaseAuth.getInstance().signOut();
-
-        // 2. Sign out from GoogleSignInClient so the Google account chooser appears on next login
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this, gso);
-        googleSignInClient.signOut().addOnCompleteListener(this, task -> {
-            // Optional: revokeAccess() can be called here if needed
-        });
+        googleSignInClient.signOut().addOnCompleteListener(this, task -> {});
 
-        // 3. Clear local application cache directory
         try {
             File cacheDir = getCacheDir();
             deleteDir(cacheDir);
         } catch (Exception e) {
             Log.e(TAG, "Error clearing application cache directory", e);
         }
-
-        // 4. Clear local Firestore database persistence
         try {
             FirebaseFirestore.getInstance().clearPersistence();
         } catch (Exception e) {
             Log.e(TAG, "Error clearing Firestore persistence", e);
         }
 
-        // 5. Notify user and redirect to LoginActivity, clearing task backstack
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -394,21 +512,13 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Recursively deletes files and folders inside the provided directory.
-     *
-     * @param dir The file or directory to delete
-     * @return true if deletion succeeded
-     */
     private boolean deleteDir(File dir) {
         if (dir != null && dir.isDirectory()) {
             String[] children = dir.list();
             if (children != null) {
                 for (String child : children) {
                     boolean success = deleteDir(new File(dir, child));
-                    if (!success) {
-                        return false;
-                    }
+                    if (!success) return false;
                 }
             }
             return dir.delete();
@@ -424,11 +534,10 @@ public class MainActivity extends AppCompatActivity {
     // =========================================================================
 
     /**
-     * Adapter for processing and displaying user accounts inside the horizontal/vertical RecyclerView.
+     * Adapter for the horizontal credit card layout on the Home screen dashboard.
      */
-    private static class CardAdapter extends RecyclerView.Adapter<CardAdapter.CardViewHolder> {
+    private class CardAdapter extends RecyclerView.Adapter<CardAdapter.CardViewHolder> {
         private List<DocumentSnapshot> cardList = new ArrayList<>();
-
         private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale.Builder().setLanguage("en").setRegion("IN").build());
 
         @SuppressLint("NotifyDataSetChanged")
@@ -448,48 +557,52 @@ public class MainActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull CardViewHolder holder, int position) {
             DocumentSnapshot doc = cardList.get(position);
 
-            String bankName = doc.getString("bank_name");
+            String fullBankName = doc.getString("bank_name");
             String cardName = doc.getString("card_name");
             String network = doc.getString("network");
             String accountId = doc.getString("account_id");
             Double creditLimit = doc.getDouble("credit_limit");
             Double currentBalance = doc.getDouble("current_balance");
+            Long themeColor = doc.getLong("theme_color");
 
-            // Fallback parsing for legacy Firestore document structures
-            if (bankName == null) {
-                String oldName = doc.getString("name");
-                if (oldName != null && oldName.contains(" ")) {
-                    String[] parts = oldName.split(" ", 2);
-                    bankName = parts[0];
-                    cardName = parts.length > 1 ? parts[1] : "Card";
+            // Apply dynamic Theme Color strictly to the text name on the white card
+            if (themeColor != null) {
+                holder.tvCardName.setTextColor(themeColor.intValue());
+            } else {
+                holder.tvCardName.setTextColor(0xFF192033);
+            }
+
+            // Execute Map matching logic for abbreviation
+            String shortBankName = "BANK";
+            if (fullBankName != null) {
+                if (BANK_INITIALS_MAP.containsKey(fullBankName)) {
+                    shortBankName = BANK_INITIALS_MAP.get(fullBankName);
                 } else {
-                    bankName = oldName != null ? oldName : "Unknown Bank";
-                    cardName = "Card";
+                    shortBankName = fullBankName.length() >= 4 ? fullBankName.substring(0, 4).toUpperCase() : fullBankName.toUpperCase();
                 }
             }
 
-            holder.tvBankName.setText(bankName);
+            holder.tvBankName.setText(shortBankName);
             holder.tvCardName.setText(cardName != null ? cardName : "");
-
-            if (network != null && !network.isEmpty()) {
-                holder.tvCardNetwork.setText(network);
-            } else {
-                String oldType = doc.getString("type");
-                holder.tvCardNetwork.setText(oldType != null ? oldType.replace("_", " ").toUpperCase() : "Visa / Mastercard");
-            }
+            holder.tvCardNetwork.setText(network != null ? network.toUpperCase() : "VISA");
 
             String maskId = accountId != null && accountId.length() >= 4 ? accountId.substring(accountId.length() - 4) : "1234";
-            holder.tvCardNumber.setText("**** **** **** " + maskId);
+            holder.tvCardNumber.setText(maskId);
+
             holder.tvCardLimit.setText(creditLimit != null ? currencyFormat.format(creditLimit) : "₹0.00");
             holder.tvCardDue.setText(currentBalance != null ? currencyFormat.format(currentBalance) : "₹0.00");
+
+            holder.itemView.setOnClickListener(v -> Toast.makeText(MainActivity.this, "Opening Ledger for " + cardName, Toast.LENGTH_SHORT).show());
+            holder.itemView.setOnLongClickListener(v -> {
+                showCardOptionsDialog(doc);
+                return true;
+            });
         }
 
         @Override
-        public int getItemCount() {
-            return cardList.size();
-        }
+        public int getItemCount() { return cardList.size(); }
 
-        static class CardViewHolder extends RecyclerView.ViewHolder {
+        class CardViewHolder extends RecyclerView.ViewHolder {
             TextView tvBankName, tvCardName, tvCardNetwork, tvCardNumber, tvCardLimit, tvCardDue;
             public CardViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -504,8 +617,82 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Adapter for processing and displaying recent user transactions inside the vertical RecyclerView.
+     * Adapter exclusively used for the vertical credit card list in the Accounts tab.
      */
+    private class AccountsCardAdapter extends RecyclerView.Adapter<AccountsCardAdapter.AccountsCardViewHolder> {
+        private List<DocumentSnapshot> cardList = new ArrayList<>();
+        private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale.Builder().setLanguage("en").setRegion("IN").build());
+
+        @SuppressLint("NotifyDataSetChanged")
+        public void setCards(List<DocumentSnapshot> cards) {
+            this.cardList = cards;
+            notifyDataSetChanged();
+        }
+
+        @NonNull
+        @Override
+        public AccountsCardViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new AccountsCardViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_account_card, parent, false));
+        }
+
+        @SuppressLint("SetTextI18n")
+        @Override
+        public void onBindViewHolder(@NonNull AccountsCardViewHolder holder, int position) {
+            DocumentSnapshot doc = cardList.get(position);
+
+            String fullBankName = doc.getString("bank_name");
+            String cardName = doc.getString("card_name");
+            String accountId = doc.getString("account_id");
+            Double creditLimit = doc.getDouble("credit_limit");
+            Long themeColor = doc.getLong("theme_color");
+
+            // Apply dynamic Theme Color strictly to the text name
+            if (themeColor != null) {
+                holder.tvCardName.setTextColor(themeColor.intValue());
+            } else {
+                holder.tvCardName.setTextColor(0xFF192033);
+            }
+
+            // Map Matching
+            String shortBankName = "BANK";
+            if (fullBankName != null) {
+                if (BANK_INITIALS_MAP.containsKey(fullBankName)) {
+                    shortBankName = BANK_INITIALS_MAP.get(fullBankName);
+                } else {
+                    shortBankName = fullBankName.length() >= 4 ? fullBankName.substring(0, 4).toUpperCase() : fullBankName.toUpperCase();
+                }
+            }
+
+            holder.tvBankName.setText(shortBankName);
+            holder.tvCardName.setText(cardName != null ? cardName : "");
+
+            String maskId = accountId != null && accountId.length() >= 4 ? accountId.substring(accountId.length() - 4) : "1234";
+            holder.tvCardNumber.setText("•••• " + maskId);
+            holder.tvCardLimit.setText(creditLimit != null ? currencyFormat.format(creditLimit) : "₹0.00");
+
+            holder.itemView.setOnClickListener(v -> Toast.makeText(MainActivity.this, "Opening Ledger for " + cardName, Toast.LENGTH_SHORT).show());
+            holder.itemView.setOnLongClickListener(v -> {
+                showCardOptionsDialog(doc);
+                return true;
+            });
+        }
+
+        @Override
+        public int getItemCount() { return cardList.size(); }
+
+        class AccountsCardViewHolder extends RecyclerView.ViewHolder {
+            TextView tvBankName, tvCardName, tvCardNumber, tvCardLimit;
+            public AccountsCardViewHolder(@NonNull View itemView) {
+                super(itemView);
+                tvBankName = itemView.findViewById(R.id.tv_acc_bank_name);
+                tvCardName = itemView.findViewById(R.id.tv_acc_card_name);
+                tvCardNumber = itemView.findViewById(R.id.tv_acc_card_number);
+                tvCardLimit = itemView.findViewById(R.id.tv_acc_card_limit);
+            }
+        }
+    }
+
+    // Existing Transaction Adapter
     private static class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> {
         private List<DocumentSnapshot> transactionList = new ArrayList<>();
         private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
@@ -527,36 +714,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
             DocumentSnapshot doc = transactionList.get(position);
-            String merchant = doc.getString("merchant");
-            Double amount = doc.getDouble("total_amount");
+            holder.tvTitle.setText(doc.getString("merchant"));
             Long createdAt = doc.getLong("created_at");
+            holder.tvDate.setText(createdAt != null ? dateFormat.format(new Date(createdAt)) : "Unknown Date");
 
-            holder.tvTitle.setText(merchant != null ? merchant : "Unknown Merchant");
-
-            if (createdAt != null) {
-                holder.tvDate.setText(dateFormat.format(new Date(createdAt)));
-            } else {
-                holder.tvDate.setText("Unknown Date");
-            }
-
+            Double amount = doc.getDouble("total_amount");
             if (amount != null) {
                 holder.tvAmount.setText(currencyFormat.format(amount));
-                if (amount < 0) {
-                    holder.tvAmount.setTextColor(0xFFD32F2F); // Material Red for expenses
-                } else {
-                    holder.tvAmount.setTextColor(0xFF4CAF50); // Material Green for incomes
-                }
-            } else {
-                holder.tvAmount.setText("₹0.00");
+                holder.tvAmount.setTextColor(amount < 0 ? 0xFFD32F2F : 0xFF4CAF50);
             }
-
             holder.imgIcon.setImageResource(android.R.drawable.ic_menu_sort_by_size);
         }
 
         @Override
-        public int getItemCount() {
-            return transactionList.size();
-        }
+        public int getItemCount() { return transactionList.size(); }
 
         static class TransactionViewHolder extends RecyclerView.ViewHolder {
             TextView tvTitle, tvDate, tvAmount; ImageView imgIcon;
@@ -570,9 +741,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Adapter for processing and displaying contacts inside the Contacts tab of the Accounts section.
-     */
+    // Existing Contact Adapter
     private static class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
         private List<DocumentSnapshot> contactList = new ArrayList<>();
 
@@ -588,28 +757,20 @@ public class MainActivity extends AppCompatActivity {
             return new ContactViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_transaction, parent, false));
         }
 
-        @SuppressLint("SetTextI18n")
         @Override
         public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
             DocumentSnapshot doc = contactList.get(position);
-            String name = doc.getString("name");
-            String phone = doc.getString("phone");
-
-            holder.tvTitle.setText(name != null ? name : "Unknown Contact");
-            holder.tvDate.setText(phone != null ? phone : "");
+            holder.tvTitle.setText(doc.getString("name"));
+            holder.tvDate.setText(doc.getString("phone"));
             holder.tvAmount.setText("");
             holder.imgIcon.setImageResource(android.R.drawable.ic_menu_my_calendar);
         }
 
         @Override
-        public int getItemCount() {
-            return contactList.size();
-        }
+        public int getItemCount() { return contactList.size(); }
 
         static class ContactViewHolder extends RecyclerView.ViewHolder {
-            TextView tvTitle, tvDate, tvAmount;
-            ImageView imgIcon;
-
+            TextView tvTitle, tvDate, tvAmount; ImageView imgIcon;
             public ContactViewHolder(@NonNull View itemView) {
                 super(itemView);
                 tvTitle = itemView.findViewById(R.id.tv_transaction_title);
