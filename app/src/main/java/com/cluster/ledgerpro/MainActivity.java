@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -158,6 +159,10 @@ public class MainActivity extends AppCompatActivity {
         // Enable modern edge-to-edge UI
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        // --- NEW FIX: Force dark icons (time, battery, notifications) on the light background ---
+        WindowInsetsControllerCompat windowController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        windowController.setAppearanceLightStatusBars(true);
 
         // Apply Window Insets to prevent UI from hiding behind system bars (status bar/nav bar)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -447,27 +452,61 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupAccountsTabSwitching() {
         com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout_accounts);
+        androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.view_pager_accounts);
+
         View sectionCreditCards = findViewById(R.id.section_credit_cards);
         View sectionContacts = findViewById(R.id.section_contacts);
 
-        tabLayout.removeAllTabs();
-        tabLayout.addTab(tabLayout.newTab().setText("Credit Cards"));
-        tabLayout.addTab(tabLayout.newTab().setText("Contacts"));
+        // Remove views from their hidden dummy parent so the ViewPager can take ownership of them
+        ((ViewGroup) sectionCreditCards.getParent()).removeAllViews();
 
-        tabLayout.addOnTabSelectedListener(new com.google.android.material.tabs.TabLayout.OnTabSelectedListener() {
+        // Custom Adapter to feed your existing Views into the ViewPager2
+        viewPager.setAdapter(new RecyclerView.Adapter<>() { // Changed to <>
+            private final View[] pages = new View[]{sectionCreditCards, sectionContacts};
+
+            @NonNull
             @Override
-            public void onTabSelected(com.google.android.material.tabs.TabLayout.Tab tab) {
-                if (tab.getPosition() == 0) {
-                    sectionCreditCards.setVisibility(View.VISIBLE);
-                    sectionContacts.setVisibility(View.GONE);
-                } else if (tab.getPosition() == 1) {
-                    sectionCreditCards.setVisibility(View.GONE);
-                    sectionContacts.setVisibility(View.VISIBLE);
-                }
+            public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                android.widget.FrameLayout frameLayout = new android.widget.FrameLayout(parent.getContext());
+                frameLayout.setLayoutParams(new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+                return new RecyclerView.ViewHolder(frameLayout) {};
             }
-            @Override public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
-            @Override public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
+
+            @Override
+            public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+                android.widget.FrameLayout frameLayout = (android.widget.FrameLayout) holder.itemView;
+                frameLayout.removeAllViews();
+
+                View view = pages[position];
+                if (view.getParent() != null) {
+                    ((ViewGroup) view.getParent()).removeView(view);
+                }
+                frameLayout.addView(view);
+            }
+
+            @Override
+            public int getItemCount() {
+                return pages.length;
+            }
+
+            @Override
+            public int getItemViewType(int position) {
+                return position; // Forces the pager to treat each view as unique
+            }
         });
+
+        // The TabLayoutMediator natively syncs the drag animation, the tab indicator, and clicks!
+        new com.google.android.material.tabs.TabLayoutMediator(tabLayout, viewPager,
+                (tab, position) -> {
+                    if (position == 0) {
+                        tab.setText("Credit Cards");
+                    } else {
+                        tab.setText("Contacts");
+                    }
+                }
+        ).attach();
     }
 
     private void setupClickListeners() {

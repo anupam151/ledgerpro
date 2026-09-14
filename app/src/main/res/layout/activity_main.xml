@@ -341,7 +341,7 @@
             android:visibility="gone"
             android:background="#F9F9F9">
 
-            <!-- MaterialTabLayout with Credit Cards & Contacts tabs -->
+            <!-- MaterialTabLayout -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tab_layout_accounts"
                 android:layout_width="match_parent"
@@ -353,58 +353,71 @@
                 app:tabMode="fixed"
                 app:tabGravity="fill" />
 
-            <!-- Section 1: Credit Cards -->
-            <FrameLayout
-                android:id="@+id/section_credit_cards"
+            <!-- NEW: ViewPager2 handles the fluid drag animations -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/view_pager_accounts"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="visible">
+                android:layout_height="match_parent" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_accounts_credit_cards"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:padding="16dp"
-                    tools:listitem="@layout/item_linked_card" />
-
-                <TextView
-                    android:id="@+id/tv_empty_credit_cards"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="No Credit Card added yet."
-                    android:textStyle="italic"
-                    android:textColor="#9E9E9E"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
-            </FrameLayout>
-
-            <!-- Section 2: Contacts -->
+            <!-- Hidden container to hold your views before the ViewPager takes them -->
             <FrameLayout
-                android:id="@+id/section_contacts"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
                 android:visibility="gone">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_accounts_contacts"
+                <!-- Section 1: Credit Cards -->
+                <FrameLayout
+                    android:id="@+id/section_credit_cards"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:padding="16dp"
-                    tools:listitem="@layout/item_recent_transaction" />
+                    android:visibility="visible">
 
-                <TextView
-                    android:id="@+id/tv_empty_contacts"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="No Contact added yet."
-                    android:textStyle="italic"
-                    android:textColor="#9E9E9E"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_accounts_credit_cards"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:padding="16dp"
+                        tools:listitem="@layout/item_linked_card" />
+
+                    <TextView
+                        android:id="@+id/tv_empty_credit_cards"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="No Credit Card added yet."
+                        android:textStyle="italic"
+                        android:textColor="#9E9E9E"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- Section 2: Contacts -->
+                <FrameLayout
+                    android:id="@+id/section_contacts"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="visible">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_accounts_contacts"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:padding="16dp"
+                        tools:listitem="@layout/item_recent_transaction" />
+
+                    <TextView
+                        android:id="@+id/tv_empty_contacts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="No Contact added yet."
+                        android:textStyle="italic"
+                        android:textColor="#9E9E9E"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+                </FrameLayout>
             </FrameLayout>
         </LinearLayout>
 
