@@ -471,16 +471,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        findViewById(R.id.card_all_cards).setOnClickListener(v -> Toast.makeText(this, "Loading Linked Cards...", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.card_all_contacts).setOnClickListener(v -> Toast.makeText(this, "Loading Payees...", Toast.LENGTH_SHORT).show());
+        // --- Home Screen Action Clicks ---
 
+        // Navigate to Accounts -> Credit Cards Tab
+        findViewById(R.id.card_all_cards).setOnClickListener(v -> {
+            BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+            bottomNav.setSelectedItemId(R.id.nav_accounts);
+
+            com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout_accounts);
+            com.google.android.material.tabs.TabLayout.Tab creditCardsTab = tabLayout.getTabAt(0);
+            if (creditCardsTab != null) {
+                creditCardsTab.select();
+            }
+        });
+
+        // Navigate to Accounts -> Contacts Tab
+        findViewById(R.id.card_all_contacts).setOnClickListener(v -> {
+            BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+            bottomNav.setSelectedItemId(R.id.nav_accounts);
+
+            com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout_accounts);
+            com.google.android.material.tabs.TabLayout.Tab contactsTab = tabLayout.getTabAt(1);
+            if (contactsTab != null) {
+                contactsTab.select();
+            }
+        });
+
+        // Launch AddCardActivity
         findViewById(R.id.card_add_card).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddCardActivity.class);
             startActivity(intent);
         });
 
         findViewById(R.id.card_add_contact).setOnClickListener(v -> Toast.makeText(this, "Opening Add Contact Form", Toast.LENGTH_SHORT).show());
+
+        // --- Utility Screen Action Clicks ---
         findViewById(R.id.card_utility_emi_calculator).setOnClickListener(v -> Toast.makeText(this, "Opening EMI Calculator...", Toast.LENGTH_SHORT).show());
+
+        // --- Settings Screen Action Clicks ---
         findViewById(R.id.card_setting_account).setOnClickListener(v -> Toast.makeText(this, "Opening Account Settings...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_setting_profile).setOnClickListener(v -> Toast.makeText(this, "Opening Profile Settings...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_setting_logout).setOnClickListener(v -> logoutAndClearSession());
