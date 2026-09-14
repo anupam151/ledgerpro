@@ -5,6 +5,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:allowBackup="true"
@@ -34,6 +35,11 @@
             android:name=".AddCardActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- NEW: Add Contact Activity -->
+        <activity
+            android:name=".AddContactActivity"
+            android:exported="false" />
 
 
     </application>

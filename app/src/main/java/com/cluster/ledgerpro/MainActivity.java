@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -31,6 +30,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import java.io.File;
@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
     // STATIC MAPPINGS (FULL BANK SHORT NAME LIST)
     // =========================================================================
     private static final Map<String, String> BANK_INITIALS_MAP = new HashMap<>();
-
     static {
         BANK_INITIALS_MAP.put("Bank of Baroda", "BOB");
         BANK_INITIALS_MAP.put("Bank of India", "BOI");
@@ -147,6 +146,11 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String userEmail;
 
+    // Firestore Listener Registrations for lifecycle management
+    private ListenerRegistration cardsListener;
+    private ListenerRegistration contactsListener;
+    private ListenerRegistration transactionsListener;
+
     /**
      * Called when the activity is first created. Initializes the UI, sets up edge-to-edge
      * layout, loads user data from Firebase, and configures event listeners.
@@ -155,23 +159,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Enable modern edge-to-edge UI
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        // --- NEW FIX: Force dark icons (time, battery, notifications) on the light background ---
         WindowInsetsControllerCompat windowController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
         windowController.setAppearanceLightStatusBars(true);
 
-        // Apply Window Insets to prevent UI from hiding behind system bars (status bar/nav bar)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Initialize top bar UI Elements
         TextView tvGreeting = findViewById(R.id.tv_greeting);
         TextView tvDate = findViewById(R.id.tv_date);
         ImageView imgProfile = findViewById(R.id.img_profile);
@@ -183,19 +182,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (currentUser != null) {
             userEmail = currentUser.getEmail();
-
             if (currentUser.getDisplayName() != null && !currentUser.getDisplayName().isEmpty()) {
                 displayName = currentUser.getDisplayName().split(" ")[0];
             }
-
             if (currentUser.getPhotoUrl() != null) {
                 String photoUrl = currentUser.getPhotoUrl().toString();
                 photoUrl = photoUrl.replace("s96-c", "s400-c");
-
-                Glide.with(this)
-                        .load(photoUrl)
-                        .placeholder(android.R.drawable.ic_menu_camera)
-                        .into(imgProfile);
+                Glide.with(this).load(photoUrl).placeholder(android.R.drawable.ic_menu_camera).into(imgProfile);
             }
         }
 
@@ -218,12 +211,65 @@ public class MainActivity extends AppCompatActivity {
         setupAccountsTabSwitching();
 
         if (userEmail != null && !userEmail.isEmpty()) {
+            ensureMyLedgerContactExists();
+        }
+    }
+
+    // =========================================================================
+    // LIFECYCLE MANAGEMENT FOR REAL-TIME FIREBASE SYNC
+    // =========================================================================
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (userEmail != null && !userEmail.isEmpty()) {
             loadFirestoreData();
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Remove listeners when leaving to prevent memory leaks and duplicate updates
+        if (cardsListener != null) cardsListener.remove();
+        if (contactsListener != null) contactsListener.remove();
+        if (transactionsListener != null) transactionsListener.remove();
+    }
+
     /**
-     * Initializes the RecyclerViews for Cards, Transactions, Credit Cards, and Contacts.
+     * Checks if the default "My Ledger" contact exists. If not, silently creates it.
+     */
+    private void ensureMyLedgerContactExists() {
+        if (userEmail == null) return;
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        String tempFirstName = "USER";
+        if (currentUser != null && currentUser.getDisplayName() != null) {
+            tempFirstName = currentUser.getDisplayName().split(" ")[0].toUpperCase().replaceAll("[^A-Z0-9]", "");
+            if (tempFirstName.isEmpty()) tempFirstName = "USER";
+        }
+        final String firstName = tempFirstName;
+
+        db.collection("users").document(userEmail).collection("Contacts")
+                .whereEqualTo("is_self", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        String randomStr = String.format(Locale.getDefault(), "%03d", new java.util.Random().nextInt(1000));
+                        String docId = String.format("%s_0000000000_%s", randomStr, firstName);
+                        Map<String, Object> myLedgerMap = new HashMap<>();
+                        myLedgerMap.put("name", "My Ledger");
+                        myLedgerMap.put("phone", "Self");
+                        myLedgerMap.put("is_self", true);
+                        myLedgerMap.put("total_payable", 0.0);
+                        myLedgerMap.put("total_receivable", 0.0);
+                        myLedgerMap.put("created_at", 0);
+                        db.collection("users").document(userEmail).collection("Contacts").document(docId).set(myLedgerMap);
+                    }
+                });
+    }
+
+    /**
+     * Initializes all RecyclerViews for Cards, Transactions, and Contacts.
      */
     private void setupRecyclerViews() {
         tvEmptyCards = findViewById(R.id.tv_empty_cards);
@@ -231,25 +277,21 @@ public class MainActivity extends AppCompatActivity {
         tvEmptyCreditCards = findViewById(R.id.tv_empty_credit_cards);
         tvEmptyContacts = findViewById(R.id.tv_empty_contacts);
 
-        // Horizontal scrolling configuration (Home screen)
         rvLinkedCards = findViewById(R.id.rv_linked_cards);
         rvLinkedCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         cardAdapter = new CardAdapter();
         rvLinkedCards.setAdapter(cardAdapter);
 
-        // Vertical scrolling configuration (Home screen transactions)
         rvRecentTransactions = findViewById(R.id.rv_recent_transactions);
         rvRecentTransactions.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         transactionAdapter = new TransactionAdapter();
         rvRecentTransactions.setAdapter(transactionAdapter);
 
-        // Accounts Tab - Vertical Credit Cards List (New Adapter)
         rvAccountsCreditCards = findViewById(R.id.rv_accounts_credit_cards);
         rvAccountsCreditCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         accountsCardAdapter = new AccountsCardAdapter();
         rvAccountsCreditCards.setAdapter(accountsCardAdapter);
 
-        // Accounts Tab - Vertical Contacts List
         rvAccountsContacts = findViewById(R.id.rv_accounts_contacts);
         rvAccountsContacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         contactAdapter = new ContactAdapter();
@@ -260,10 +302,16 @@ public class MainActivity extends AppCompatActivity {
      * Attaches real-time SnapshotListeners to Firestore collections.
      */
     private void loadFirestoreData() {
-        db.collection("users").document(userEmail).collection("Credit Cards")
+        if (userEmail == null) return;
+
+        if (cardsListener != null) cardsListener.remove();
+        if (contactsListener != null) contactsListener.remove();
+        if (transactionsListener != null) transactionsListener.remove();
+
+        cardsListener = db.collection("users").document(userEmail).collection("Credit Cards")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
-                        Log.e(TAG, "Listen failed for Credit Cards.", e);
+                        Log.e(TAG, "Credit Cards listen failed", e);
                         return;
                     }
                     if (snapshots != null && !snapshots.isEmpty()) {
@@ -285,13 +333,18 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        db.collection("users").document(userEmail).collection("contacts")
+        contactsListener = db.collection("users").document(userEmail).collection("Contacts")
+                .orderBy("name", Query.Direction.ASCENDING)
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) return;
+                    if (e != null) {
+                        Log.e(TAG, "Contacts listen failed", e);
+                        return;
+                    }
                     if (snapshots != null && !snapshots.isEmpty()) {
+                        List<DocumentSnapshot> sortedContacts = processAndSortContacts(snapshots.getDocuments());
                         rvAccountsContacts.setVisibility(View.VISIBLE);
                         tvEmptyContacts.setVisibility(View.GONE);
-                        contactAdapter.setContacts(snapshots.getDocuments());
+                        contactAdapter.setContacts(sortedContacts);
                     } else {
                         rvAccountsContacts.setVisibility(View.GONE);
                         tvEmptyContacts.setVisibility(View.VISIBLE);
@@ -299,10 +352,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        db.collection("users").document(userEmail).collection("transactions")
+        transactionsListener = db.collection("users").document(userEmail).collection("transactions")
                 .orderBy("created_at", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) return;
+                    if (e != null) {
+                        Log.e(TAG, "Transactions listen failed", e);
+                        return;
+                    }
                     if (snapshots != null && !snapshots.isEmpty()) {
                         rvRecentTransactions.setVisibility(View.VISIBLE);
                         tvEmptyTransactions.setVisibility(View.GONE);
@@ -316,8 +372,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Triggers a custom rounded-corner dialog displaying "Edit" and "Delete" options for a selected card.
+     * Processes a list of contact documents, sorts them in memory, and ensures
+     * that "My Ledger" (is_self = true) always stays pinned at the very top.
      */
+    private List<DocumentSnapshot> processAndSortContacts(List<DocumentSnapshot> rawDocs) {
+        List<DocumentSnapshot> docList = new ArrayList<>(rawDocs);
+
+        docList.sort((d1, d2) -> {
+            Boolean self1 = d1.getBoolean("is_self");
+            Boolean self2 = d2.getBoolean("is_self");
+            boolean s1 = self1 != null && self1;
+            boolean s2 = self2 != null && self2;
+            if (s1 && !s2) return -1;
+            if (!s1 && s2) return 1;
+            String n1 = d1.getString("name");
+            String n2 = d2.getString("name");
+            return (n1 != null ? n1 : "").compareToIgnoreCase(n2 != null ? n2 : "");
+        });
+
+        return docList;
+    }
+
+    // =========================================================================
+    // DIALOGS & EDIT/DELETE HANDLERS
+    // =========================================================================
+
     private void showCardOptionsDialog(DocumentSnapshot doc) {
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.setContentView(R.layout.dialog_card_options);
@@ -346,9 +425,37 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    /**
-     * Packages the Firestore document data into an Intent and launches AddCardActivity in edit mode.
-     */
+    @SuppressLint("SetTextI18n")
+    private void showContactOptionsDialog(DocumentSnapshot doc) {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(R.layout.dialog_card_options);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        TextView tvTitle = dialog.findViewById(R.id.tv_dialog_title);
+        TextView tvEdit = dialog.findViewById(R.id.tv_edit_card);
+        TextView tvDelete = dialog.findViewById(R.id.tv_delete_card);
+
+        tvTitle.setText(doc.getString("name"));
+        tvEdit.setText("Edit Contact");
+        tvDelete.setText("Delete Contact");
+
+        tvEdit.setOnClickListener(v -> {
+            dialog.dismiss();
+            Toast.makeText(this, "Edit Contact functionality coming soon!", Toast.LENGTH_SHORT).show();
+        });
+
+        tvDelete.setOnClickListener(v -> {
+            dialog.dismiss();
+            confirmDeleteContact(doc);
+        });
+
+        dialog.show();
+    }
+
     private void launchEditCardActivity(DocumentSnapshot doc) {
         Intent intent = new Intent(this, AddCardActivity.class);
         intent.putExtra("CARD_ID", doc.getId());
@@ -382,25 +489,60 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    /**
-     * Shows a confirmation dialog before permanently removing the card document from Firestore.
-     */
+    private void showCustomDeleteDialog(String title, String message, Runnable onDeleteAction) {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(R.layout.dialog_confirm_delete);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        TextView tvTitle = dialog.findViewById(R.id.tv_delete_title);
+        TextView tvMessage = dialog.findViewById(R.id.tv_delete_message);
+        View btnCancel = dialog.findViewById(R.id.btn_cancel_delete);
+        View btnDelete = dialog.findViewById(R.id.btn_confirm_delete);
+
+        tvTitle.setText(title);
+        tvMessage.setText(message);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnDelete.setOnClickListener(v -> {
+            dialog.dismiss();
+            onDeleteAction.run();
+        });
+
+        dialog.show();
+    }
+
     private void confirmDeleteCard(DocumentSnapshot doc) {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Credit Card")
-                .setMessage("Are you sure you want to delete this credit card? This action cannot be undone.")
-                .setPositiveButton("Delete", (dialog, which) -> db.collection("users").document(userEmail).collection("Credit Cards")
+        showCustomDeleteDialog(
+                "Delete Credit Card",
+                "Are you sure you want to delete this credit card? This action cannot be undone.",
+                () -> db.collection("users").document(userEmail).collection("Credit Cards")
                         .document(doc.getId())
                         .delete()
                         .addOnSuccessListener(aVoid -> Toast.makeText(this, "Credit Card deleted", Toast.LENGTH_SHORT).show())
-                        .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show()))
-                .setNegativeButton("Cancel", null)
-                .show();
+                        .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show())
+        );
     }
 
-    /**
-     * SPA Architecture: Manages navigation entirely within this activity.
-     */
+    private void confirmDeleteContact(DocumentSnapshot doc) {
+        showCustomDeleteDialog(
+                "Delete Contact",
+                "Are you sure you want to delete this contact? This action cannot be undone.",
+                () -> db.collection("users").document(userEmail).collection("Contacts")
+                        .document(doc.getId())
+                        .delete()
+                        .addOnSuccessListener(aVoid -> Toast.makeText(this, "Contact deleted", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show())
+        );
+    }
+
+    // =========================================================================
+    // NAVIGATION & TAB SETUP
+    // =========================================================================
+
     @SuppressLint("SetTextI18n")
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
@@ -457,11 +599,11 @@ public class MainActivity extends AppCompatActivity {
         View sectionCreditCards = findViewById(R.id.section_credit_cards);
         View sectionContacts = findViewById(R.id.section_contacts);
 
-        // Remove views from their hidden dummy parent so the ViewPager can take ownership of them
-        ((ViewGroup) sectionCreditCards.getParent()).removeAllViews();
+        if (sectionCreditCards.getParent() != null) {
+            ((ViewGroup) sectionCreditCards.getParent()).removeAllViews();
+        }
 
-        // Custom Adapter to feed your existing Views into the ViewPager2
-        viewPager.setAdapter(new RecyclerView.Adapter<>() { // Changed to <>
+        viewPager.setAdapter(new RecyclerView.Adapter<>() {
             private final View[] pages = new View[]{sectionCreditCards, sectionContacts};
 
             @NonNull
@@ -493,11 +635,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public int getItemViewType(int position) {
-                return position; // Forces the pager to treat each view as unique
+                return position;
             }
         });
 
-        // The TabLayoutMediator natively syncs the drag animation, the tab indicator, and clicks!
         new com.google.android.material.tabs.TabLayoutMediator(tabLayout, viewPager,
                 (tab, position) -> {
                     if (position == 0) {
@@ -510,9 +651,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        // --- Home Screen Action Clicks ---
-
-        // Navigate to Accounts -> Credit Cards Tab
         findViewById(R.id.card_all_cards).setOnClickListener(v -> {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             bottomNav.setSelectedItemId(R.id.nav_accounts);
@@ -524,7 +662,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Navigate to Accounts -> Contacts Tab
         findViewById(R.id.card_all_contacts).setOnClickListener(v -> {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             bottomNav.setSelectedItemId(R.id.nav_accounts);
@@ -536,18 +673,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Launch AddCardActivity
         findViewById(R.id.card_add_card).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddCardActivity.class);
             startActivity(intent);
         });
 
-        findViewById(R.id.card_add_contact).setOnClickListener(v -> Toast.makeText(this, "Opening Add Contact Form", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.card_add_contact).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddContactActivity.class);
+            startActivity(intent);
+        });
 
-        // --- Utility Screen Action Clicks ---
         findViewById(R.id.card_utility_emi_calculator).setOnClickListener(v -> Toast.makeText(this, "Opening EMI Calculator...", Toast.LENGTH_SHORT).show());
-
-        // --- Settings Screen Action Clicks ---
         findViewById(R.id.card_setting_account).setOnClickListener(v -> Toast.makeText(this, "Opening Account Settings...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_setting_profile).setOnClickListener(v -> Toast.makeText(this, "Opening Profile Settings...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_setting_logout).setOnClickListener(v -> logoutAndClearSession());
@@ -600,9 +736,6 @@ public class MainActivity extends AppCompatActivity {
     // RECYCLER VIEW ADAPTERS
     // =========================================================================
 
-    /**
-     * Adapter for the horizontal credit card layout on the Home screen dashboard.
-     */
     private class CardAdapter extends RecyclerView.Adapter<CardAdapter.CardViewHolder> {
         private List<DocumentSnapshot> cardList = new ArrayList<>();
         private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale.Builder().setLanguage("en").setRegion("IN").build());
@@ -632,14 +765,12 @@ public class MainActivity extends AppCompatActivity {
             Double currentBalance = doc.getDouble("current_balance");
             Long themeColor = doc.getLong("theme_color");
 
-            // Apply dynamic Theme Color strictly to the text name on the white card
             if (themeColor != null) {
                 holder.tvCardName.setTextColor(themeColor.intValue());
             } else {
                 holder.tvCardName.setTextColor(0xFF192033);
             }
 
-            // Execute Map matching logic for abbreviation
             String shortBankName = "BANK";
             if (fullBankName != null) {
                 if (BANK_INITIALS_MAP.containsKey(fullBankName)) {
@@ -683,9 +814,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Adapter exclusively used for the vertical credit card list in the Accounts tab.
-     */
     private class AccountsCardAdapter extends RecyclerView.Adapter<AccountsCardAdapter.AccountsCardViewHolder> {
         private List<DocumentSnapshot> cardList = new ArrayList<>();
         private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale.Builder().setLanguage("en").setRegion("IN").build());
@@ -713,14 +841,12 @@ public class MainActivity extends AppCompatActivity {
             Double creditLimit = doc.getDouble("credit_limit");
             Long themeColor = doc.getLong("theme_color");
 
-            // Apply dynamic Theme Color strictly to the text name
             if (themeColor != null) {
                 holder.tvCardName.setTextColor(themeColor.intValue());
             } else {
                 holder.tvCardName.setTextColor(0xFF192033);
             }
 
-            // Map Matching
             String shortBankName = "BANK";
             if (fullBankName != null) {
                 if (BANK_INITIALS_MAP.containsKey(fullBankName)) {
@@ -759,7 +885,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Existing Transaction Adapter
     private static class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> {
         private List<DocumentSnapshot> transactionList = new ArrayList<>();
         private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
@@ -808,8 +933,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Existing Contact Adapter
-    private static class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
+    private class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
         private List<DocumentSnapshot> contactList = new ArrayList<>();
 
         @SuppressLint("NotifyDataSetChanged")
@@ -821,29 +945,41 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public ContactViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ContactViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_transaction, parent, false));
+            return new ContactViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_contact_card, parent, false));
         }
 
         @Override
         public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
             DocumentSnapshot doc = contactList.get(position);
-            holder.tvTitle.setText(doc.getString("name"));
-            holder.tvDate.setText(doc.getString("phone"));
-            holder.tvAmount.setText("");
-            holder.imgIcon.setImageResource(android.R.drawable.ic_menu_my_calendar);
+            String name = doc.getString("name");
+            holder.tvContactName.setText(name);
+            holder.tvContactPhone.setText(doc.getString("phone"));
+
+            Boolean isSelf = doc.getBoolean("is_self");
+            if (isSelf != null && isSelf) {
+                holder.imgContactIcon.setColorFilter(android.graphics.Color.parseColor("#4CAF50"));
+                holder.itemView.setOnLongClickListener(null);
+            } else {
+                holder.imgContactIcon.setColorFilter(android.graphics.Color.parseColor("#192033"));
+                holder.itemView.setOnLongClickListener(v -> {
+                    showContactOptionsDialog(doc);
+                    return true;
+                });
+            }
+
+            holder.itemView.setOnClickListener(v -> Toast.makeText(MainActivity.this, "Opening Contact Ledger for " + name, Toast.LENGTH_SHORT).show());
         }
 
         @Override
         public int getItemCount() { return contactList.size(); }
 
-        static class ContactViewHolder extends RecyclerView.ViewHolder {
-            TextView tvTitle, tvDate, tvAmount; ImageView imgIcon;
+        class ContactViewHolder extends RecyclerView.ViewHolder {
+            TextView tvContactName, tvContactPhone; ImageView imgContactIcon;
             public ContactViewHolder(@NonNull View itemView) {
                 super(itemView);
-                tvTitle = itemView.findViewById(R.id.tv_transaction_title);
-                tvDate = itemView.findViewById(R.id.tv_transaction_date);
-                tvAmount = itemView.findViewById(R.id.tv_transaction_amount);
-                imgIcon = itemView.findViewById(R.id.img_transaction_icon);
+                tvContactName = itemView.findViewById(R.id.tv_contact_name);
+                tvContactPhone = itemView.findViewById(R.id.tv_contact_phone);
+                imgContactIcon = itemView.findViewById(R.id.img_contact_icon);
             }
         }
     }
