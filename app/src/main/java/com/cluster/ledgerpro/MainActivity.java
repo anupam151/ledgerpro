@@ -683,7 +683,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        findViewById(R.id.card_utility_emi_calculator).setOnClickListener(v -> Toast.makeText(this, "Opening EMI Calculator...", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.card_utility_emi_calculator).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, EmiCalculatorActivity.class);
+            startActivity(intent);
+        });
         findViewById(R.id.card_setting_account).setOnClickListener(v -> Toast.makeText(this, "Opening Account Settings...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_setting_profile).setOnClickListener(v -> Toast.makeText(this, "Opening Profile Settings...", Toast.LENGTH_SHORT).show());
         findViewById(R.id.card_setting_logout).setOnClickListener(v -> logoutAndClearSession());
