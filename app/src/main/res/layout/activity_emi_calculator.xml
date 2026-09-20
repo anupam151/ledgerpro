@@ -10,7 +10,7 @@
     tools:context=".EmiCalculatorActivity"
     tools:ignore="HardcodedText, ContentDescription, KeyboardInaccessibleWidget">
 
-    <!-- Custom Top App Bar -->
+    <!-- Custom Top App Bar Section -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
@@ -23,17 +23,19 @@
             android:layout_height="64dp"
             android:paddingHorizontal="24dp">
 
+            <!-- Back Navigation Button -->
             <ImageView
                 android:id="@+id/btn_back"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_revert"
+                android:src="@drawable/back"
                 app:tint="#FFFFFF"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- App Title Text -->
             <TextView
                 android:id="@+id/tv_app_title"
                 android:layout_width="wrap_content"
@@ -49,6 +51,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Scrollable Content Container -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view"
         android:layout_width="match_parent"
@@ -64,7 +67,7 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Inputs Card -->
+            <!-- Inputs Card Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -79,43 +82,59 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
+                    <!-- First Row: Principal and Tenure Inputs -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:baselineAligned="false">
 
+                        <!-- Principal Amount Input Layout -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPrincipal"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="8dp">
+                            android:layout_marginEnd="8dp"
+                            app:boxStrokeColor="#192033"
+                            app:hintTextColor="#192033">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etPrincipal"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:hint="Principal (₹)"
-                                android:inputType="numberDecimal" />
+                                android:textColor="#192033"
+                                android:textColorHint="#192033"
+                                android:inputType="numberDecimal"
+                                android:nextFocusForward="@id/etTenure" />
                         </com.google.android.material.textfield.TextInputLayout>
 
+                        <!-- Tenure Input Layout -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilTenure"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginStart="8dp">
+                            android:layout_marginStart="8dp"
+                            app:boxStrokeColor="#192033"
+                            app:hintTextColor="#192033">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etTenure"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="Tenure (Mo)"
-                                android:inputType="number" />
+                                android:hint="Tenure (M)"
+                                android:textColor="#192033"
+                                android:textColorHint="#192033"
+                                android:inputType="number"
+                                android:nextFocusForward="@id/etInterestRate" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
+                    <!-- Second Row: Interest Rate and Processing Fee Inputs -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -123,51 +142,72 @@
                         android:orientation="horizontal"
                         android:baselineAligned="false">
 
+                        <!-- Interest Rate Input Layout -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilInterestRate"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="8dp">
+                            android:layout_marginEnd="8dp"
+                            app:boxStrokeColor="#192033"
+                            app:hintTextColor="#192033">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etInterestRate"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:hint="Rate (%)"
-                                android:inputType="numberDecimal" />
+                                android:textColor="#192033"
+                                android:textColorHint="#192033"
+                                android:inputType="numberDecimal"
+                                android:nextFocusForward="@id/etProcessingFee" />
                         </com.google.android.material.textfield.TextInputLayout>
 
+                        <!-- Processing Fee Input Layout -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilProcessingFee"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginStart="8dp">
+                            android:layout_marginStart="8dp"
+                            app:boxStrokeColor="#192033"
+                            app:hintTextColor="#192033">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etProcessingFee"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="Base PF (₹)"
-                                android:inputType="numberDecimal" />
+                                android:hint="Processing Fee (₹)"
+                                android:textColor="#192033"
+                                android:textColorHint="#192033"
+                                android:inputType="numberDecimal"
+                                android:nextFocusForward="@id/etPrivilegeCharge" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
+                    <!-- Other Charges Input Layout -->
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPrivilegeCharge"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp">
+                        android:layout_marginTop="16dp"
+                        app:boxStrokeColor="#192033"
+                        app:hintTextColor="#192033">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPrivilegeCharge"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Other Charges (Privilege) (₹)"
+                            android:hint="Other Charges (₹)"
+                            android:textColor="#192033"
+                            android:textColorHint="#192033"
                             android:inputType="numberDecimal" />
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <!-- Pro-rata Interest Toggle Switch -->
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchProRata"
                         android:layout_width="match_parent"
@@ -177,6 +217,7 @@
                         android:textColor="#192033"
                         android:textSize="14sp" />
 
+                    <!-- Pro-rata Date Selectors Layout -->
                     <LinearLayout
                         android:id="@+id/layoutProRataDates"
                         android:layout_width="match_parent"
@@ -186,35 +227,47 @@
                         android:baselineAligned="false"
                         android:visibility="gone">
 
+                        <!-- Transaction Date Input Layout -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilTxnDate"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="8dp">
+                            android:layout_marginEnd="8dp"
+                            app:boxStrokeColor="#192033"
+                            app:hintTextColor="#192033">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etTxnDate"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:hint="Txn Date"
+                                android:textColor="#192033"
+                                android:textColorHint="#192033"
                                 android:focusable="false"
                                 android:clickable="true"
                                 android:cursorVisible="false" />
                         </com.google.android.material.textfield.TextInputLayout>
 
+                        <!-- First Bill Date Input Layout -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilBillDate"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginStart="8dp">
+                            android:layout_marginStart="8dp"
+                            app:boxStrokeColor="#192033"
+                            app:hintTextColor="#192033">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etBillDate"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="1st Bill Date"
+                                android:hint="Next Bill Date"
+                                android:textColor="#192033"
+                                android:textColorHint="#192033"
                                 android:focusable="false"
                                 android:clickable="true"
                                 android:cursorVisible="false" />
@@ -224,6 +277,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Calculate Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCalculate"
                 android:layout_width="match_parent"
@@ -235,7 +289,7 @@
                 android:textSize="16sp"
                 app:cornerRadius="12dp" />
 
-            <!-- UPDATED: Summary Card with Header -->
+            <!-- Summary Card with Header -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSummary"
                 android:layout_width="match_parent"
@@ -251,6 +305,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <!-- Summary Card Header Title -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -267,6 +322,7 @@
                         android:layout_height="1dp"
                         android:background="#E5E7EB" />
 
+                    <!-- Summary Content Text -->
                     <TextView
                         android:id="@+id/tvSummary"
                         android:layout_width="match_parent"
@@ -278,7 +334,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- UPDATED: Amortization Table Card with Header -->
+            <!-- Amortization Table Card with Header -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTable"
                 android:layout_width="match_parent"
@@ -294,6 +350,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <!-- Table Card Header Title -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -310,6 +367,7 @@
                         android:layout_height="1dp"
                         android:background="#E5E7EB" />
 
+                    <!-- Scrollable Table View Container -->
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

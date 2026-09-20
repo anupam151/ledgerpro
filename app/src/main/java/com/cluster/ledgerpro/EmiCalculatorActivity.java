@@ -2,6 +2,7 @@ package com.cluster.ledgerpro;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -79,9 +81,12 @@ public class EmiCalculatorActivity extends AppCompatActivity {
         setupListeners();
     }
 
+    // --- Initialize UI Views and Force Dark Hint Colors ---
     private void initializeViews() {
         btnBack = findViewById(R.id.btn_back);
         scrollView = findViewById(R.id.scroll_view);
+
+        // TextInputEditText References
         etPrincipal = findViewById(R.id.etPrincipal);
         etInterestRate = findViewById(R.id.etInterestRate);
         etTenure = findViewById(R.id.etTenure);
@@ -98,6 +103,25 @@ public class EmiCalculatorActivity extends AppCompatActivity {
         cardTable = findViewById(R.id.cardTable);
         tvSummary = findViewById(R.id.tvSummary);
         tableAmortization = findViewById(R.id.tableAmortization);
+
+        // --- Force dark hint colors locally for all TextInputLayouts ---
+        ColorStateList darkHintColor = ColorStateList.valueOf(Color.parseColor("#192033"));
+        TextInputLayout[] textInputLayouts = {
+                findViewById(R.id.tilPrincipal),
+                findViewById(R.id.tilTenure),
+                findViewById(R.id.tilInterestRate),
+                findViewById(R.id.tilProcessingFee),
+                findViewById(R.id.tilPrivilegeCharge),
+                findViewById(R.id.tilTxnDate),
+                findViewById(R.id.tilBillDate)
+        };
+
+        for (TextInputLayout til : textInputLayouts) {
+            if (til != null) {
+                til.setDefaultHintTextColor(darkHintColor);
+                til.setHintTextColor(darkHintColor);
+            }
+        }
     }
 
     private void setupListeners() {
