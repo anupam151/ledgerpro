@@ -655,22 +655,18 @@ public class MainActivity extends AppCompatActivity {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             bottomNav.setSelectedItemId(R.id.nav_accounts);
 
-            com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout_accounts);
-            com.google.android.material.tabs.TabLayout.Tab creditCardsTab = tabLayout.getTabAt(0);
-            if (creditCardsTab != null) {
-                creditCardsTab.select();
-            }
+            // Directly control ViewPager2 instead of TabLayout
+            androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.view_pager_accounts);
+            viewPager.setCurrentItem(0, false);
         });
 
         findViewById(R.id.card_all_contacts).setOnClickListener(v -> {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             bottomNav.setSelectedItemId(R.id.nav_accounts);
 
-            com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout_accounts);
-            com.google.android.material.tabs.TabLayout.Tab contactsTab = tabLayout.getTabAt(1);
-            if (contactsTab != null) {
-                contactsTab.select();
-            }
+            // Directly control ViewPager2 instead of TabLayout
+            androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.view_pager_accounts);
+            viewPager.setCurrentItem(1, false);
         });
 
         findViewById(R.id.card_add_card).setOnClickListener(v -> {
