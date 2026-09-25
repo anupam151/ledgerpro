@@ -151,10 +151,6 @@ public class MainActivity extends AppCompatActivity {
     private ListenerRegistration contactsListener;
     private ListenerRegistration transactionsListener;
 
-    /**
-     * Called when the activity is first created. Initializes the UI, sets up edge-to-edge
-     * layout, loads user data from Firebase, and configures event listeners.
-     */
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,10 +211,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // =========================================================================
-    // LIFECYCLE MANAGEMENT FOR REAL-TIME FIREBASE SYNC
-    // =========================================================================
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -230,15 +222,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Remove listeners when leaving to prevent memory leaks and duplicate updates
         if (cardsListener != null) cardsListener.remove();
         if (contactsListener != null) contactsListener.remove();
         if (transactionsListener != null) transactionsListener.remove();
     }
 
-    /**
-     * Checks if the default "My Ledger" contact exists. If not, silently creates it.
-     */
     private void ensureMyLedgerContactExists() {
         if (userEmail == null) return;
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -268,9 +256,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Initializes all RecyclerViews for Cards, Transactions, and Contacts.
-     */
     private void setupRecyclerViews() {
         tvEmptyCards = findViewById(R.id.tv_empty_cards);
         tvEmptyTransactions = findViewById(R.id.tv_empty_transactions);
@@ -298,9 +283,6 @@ public class MainActivity extends AppCompatActivity {
         rvAccountsContacts.setAdapter(contactAdapter);
     }
 
-    /**
-     * Attaches real-time SnapshotListeners to Firestore collections.
-     */
     private void loadFirestoreData() {
         if (userEmail == null) return;
 
@@ -371,10 +353,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Processes a list of contact documents, sorts them in memory, and ensures
-     * that "My Ledger" (is_self = true) always stays pinned at the very top.
-     */
     private List<DocumentSnapshot> processAndSortContacts(List<DocumentSnapshot> rawDocs) {
         List<DocumentSnapshot> docList = new ArrayList<>(rawDocs);
 
@@ -392,10 +370,6 @@ public class MainActivity extends AppCompatActivity {
 
         return docList;
     }
-
-    // =========================================================================
-    // DIALOGS & EDIT/DELETE HANDLERS
-    // =========================================================================
 
     private void showCardOptionsDialog(DocumentSnapshot doc) {
         android.app.Dialog dialog = new android.app.Dialog(this);
@@ -539,10 +513,6 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    // =========================================================================
-    // NAVIGATION & TAB SETUP
-    // =========================================================================
-
     @SuppressLint("SetTextI18n")
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
@@ -655,7 +625,6 @@ public class MainActivity extends AppCompatActivity {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             bottomNav.setSelectedItemId(R.id.nav_accounts);
 
-            // Directly control ViewPager2 instead of TabLayout
             androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.view_pager_accounts);
             viewPager.setCurrentItem(0, false);
         });
@@ -664,7 +633,6 @@ public class MainActivity extends AppCompatActivity {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             bottomNav.setSelectedItemId(R.id.nav_accounts);
 
-            // Directly control ViewPager2 instead of TabLayout
             androidx.viewpager2.widget.ViewPager2 viewPager = findViewById(R.id.view_pager_accounts);
             viewPager.setCurrentItem(1, false);
         });
@@ -789,7 +757,13 @@ public class MainActivity extends AppCompatActivity {
             holder.tvCardLimit.setText(creditLimit != null ? currencyFormat.format(creditLimit) : "₹0.00");
             holder.tvCardDue.setText(currentBalance != null ? currencyFormat.format(currentBalance) : "₹0.00");
 
-            holder.itemView.setOnClickListener(v -> Toast.makeText(MainActivity.this, "Opening Ledger for " + cardName, Toast.LENGTH_SHORT).show());
+            // UPDATED: Opens CardDetailActivity and passes CARD_ID
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, CardDetailActivity.class);
+                intent.putExtra("CARD_ID", doc.getId());
+                startActivity(intent);
+            });
+
             holder.itemView.setOnLongClickListener(v -> {
                 showCardOptionsDialog(doc);
                 return true;
@@ -862,7 +836,13 @@ public class MainActivity extends AppCompatActivity {
             holder.tvCardNumber.setText("•••• " + maskId);
             holder.tvCardLimit.setText(creditLimit != null ? currencyFormat.format(creditLimit) : "₹0.00");
 
-            holder.itemView.setOnClickListener(v -> Toast.makeText(MainActivity.this, "Opening Ledger for " + cardName, Toast.LENGTH_SHORT).show());
+            // UPDATED: Opens CardDetailActivity and passes CARD_ID
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, CardDetailActivity.class);
+                intent.putExtra("CARD_ID", doc.getId());
+                startActivity(intent);
+            });
+
             holder.itemView.setOnLongClickListener(v -> {
                 showCardOptionsDialog(doc);
                 return true;

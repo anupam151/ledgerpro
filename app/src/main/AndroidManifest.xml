@@ -45,9 +45,15 @@
             android:name=".AddContactActivity"
             android:exported="false" />
 
-        <!-- NEW: Standalone EMI Calculator Utility -->
+        <!-- Standalone EMI Calculator Utility -->
         <activity
             android:name=".EmiCalculatorActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Dedicated Credit Card Detail Activity -->
+        <activity
+            android:name=".CardDetailActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
